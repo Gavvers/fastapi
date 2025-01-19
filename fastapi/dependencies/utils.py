@@ -580,6 +580,7 @@ async def solve_dependencies(
     dependency_cache: Optional[Dict[Tuple[Callable[..., Any], Tuple[str]], Any]] = None,
     async_exit_stack: AsyncExitStack,
     embed_body_fields: bool,
+    raise_from_deps: bool = True,
 ) -> SolvedDependency:
     values: Dict[str, Any] = {}
     errors: List[Any] = []
@@ -622,6 +623,7 @@ async def solve_dependencies(
             dependency_cache=dependency_cache,
             async_exit_stack=async_exit_stack,
             embed_body_fields=embed_body_fields,
+            raise_from_deps=raise_from_deps,
         )
         background_tasks = solved_result.background_tasks
         dependency_cache.update(solved_result.dependency_cache)
@@ -635,9 +637,21 @@ async def solve_dependencies(
                 call=call, stack=async_exit_stack, sub_values=solved_result.values
             )
         elif is_coroutine_callable(call):
-            solved = await call(**solved_result.values)
+            try:
+                solved = await call(**solved_result.values)
+            except Exception:
+                if raise_from_deps:
+                    raise
+                else:
+                    solved = None
         else:
-            solved = await run_in_threadpool(call, **solved_result.values)
+            try:
+                solved = await run_in_threadpool(call, **solved_result.values)
+            except Exception:
+                if raise_from_deps:
+                    raise
+                else:
+                    solved = None
         if sub_dependant.name is not None:
             values[sub_dependant.name] = solved
         if sub_dependant.cache_key not in dependency_cache:

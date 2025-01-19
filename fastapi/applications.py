@@ -1788,6 +1788,20 @@ class FastAPI(Starlette):
                 """
             ),
         ] = Default(generate_unique_id),
+        raise_from_deps: Annotated[
+            bool,
+            Doc(
+                """
+                Switch between dependency exception handling flows.
+
+                When `True`, the current behavior, exceptions raised from dependencies
+                short-circuit the request and returns an immediate response.
+
+                When `False`, exceptions raised from dependencies do not interrupt
+                the request handling and the path operation function is still called.
+                """
+            ),
+        ] = True,
     ) -> Callable[[DecoratedCallable], DecoratedCallable]:
         """
         Add a *path operation* using an HTTP GET operation.
@@ -1828,6 +1842,7 @@ class FastAPI(Starlette):
             callbacks=callbacks,
             openapi_extra=openapi_extra,
             generate_unique_id_function=generate_unique_id_function,
+            raise_from_deps=raise_from_deps,
         )
 
     def put(

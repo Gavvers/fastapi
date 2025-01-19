@@ -228,6 +228,7 @@ def get_request_handler(
     response_model_exclude_none: bool = False,
     dependency_overrides_provider: Optional[Any] = None,
     embed_body_fields: bool = False,
+    raise_from_deps: bool = True,
 ) -> Callable[[Request], Coroutine[Any, Any, Response]]:
     assert dependant.call is not None, "dependant.call must be a function"
     is_coroutine = asyncio.iscoroutinefunction(dependant.call)
@@ -295,9 +296,10 @@ def get_request_handler(
                     dependency_overrides_provider=dependency_overrides_provider,
                     async_exit_stack=async_exit_stack,
                     embed_body_fields=embed_body_fields,
+                    raise_from_deps=raise_from_deps,
                 )
                 errors = solved_result.errors
-                if not errors:
+                if not errors or not raise_from_deps:
                     raw_response = await run_endpoint_function(
                         dependant=dependant,
                         values=solved_result.values,
@@ -459,6 +461,7 @@ class APIRoute(routing.Route):
         generate_unique_id_function: Union[
             Callable[["APIRoute"], str], DefaultPlaceholder
         ] = Default(generate_unique_id),
+        raise_from_deps: bool = True,
     ) -> None:
         self.path = path
         self.endpoint = endpoint
@@ -489,6 +492,7 @@ class APIRoute(routing.Route):
         self.responses = responses or {}
         self.name = get_name(endpoint) if name is None else name
         self.path_regex, self.path_format, self.param_convertors = compile_path(path)
+        self.raise_from_deps = raise_from_deps
         if methods is None:
             methods = ["GET"]
         self.methods: Set[str] = {method.upper() for method in methods}
@@ -583,6 +587,7 @@ class APIRoute(routing.Route):
             response_model_exclude_none=self.response_model_exclude_none,
             dependency_overrides_provider=self.dependency_overrides_provider,
             embed_body_fields=self._embed_body_fields,
+            raise_from_deps=self.raise_from_deps,
         )
 
     def matches(self, scope: Scope) -> Tuple[Match, Scope]:
@@ -911,6 +916,7 @@ class APIRouter(routing.Router):
         generate_unique_id_function: Union[
             Callable[[APIRoute], str], DefaultPlaceholder
         ] = Default(generate_unique_id),
+        raise_from_deps: bool = True,
     ) -> None:
         route_class = route_class_override or self.route_class
         responses = responses or {}
@@ -957,6 +963,7 @@ class APIRouter(routing.Router):
             callbacks=current_callbacks,
             openapi_extra=openapi_extra,
             generate_unique_id_function=current_generate_unique_id,
+            raise_from_deps=raise_from_deps,
         )
         self.routes.append(route)
 
@@ -989,6 +996,7 @@ class APIRouter(routing.Router):
         generate_unique_id_function: Callable[[APIRoute], str] = Default(
             generate_unique_id
         ),
+        raise_from_deps: bool = True,
     ) -> Callable[[DecoratedCallable], DecoratedCallable]:
         def decorator(func: DecoratedCallable) -> DecoratedCallable:
             self.add_api_route(
@@ -1017,6 +1025,7 @@ class APIRouter(routing.Router):
                 callbacks=callbacks,
                 openapi_extra=openapi_extra,
                 generate_unique_id_function=generate_unique_id_function,
+                raise_from_deps=raise_from_deps,
             )
             return func
 
@@ -1694,6 +1703,20 @@ class APIRouter(routing.Router):
                 """
             ),
         ] = Default(generate_unique_id),
+        raise_from_deps: Annotated[
+            bool,
+            Doc(
+                """
+                Switch between dependency exception handling flows.
+
+                If `True`, current behavior - exceptions raised from dependencies
+                short-circuit the request and returns an immediate response.
+
+                If `False`, exceptions raised from dependencies do not interrupt
+                the request handling and the path operation function is still called.
+                """
+            ),
+        ] = True,
     ) -> Callable[[DecoratedCallable], DecoratedCallable]:
         """
         Add a *path operation* using an HTTP GET operation.
@@ -1738,6 +1761,7 @@ class APIRouter(routing.Router):
             callbacks=callbacks,
             openapi_extra=openapi_extra,
             generate_unique_id_function=generate_unique_id_function,
+            raise_from_deps=raise_from_deps,
         )
 
     def put(
