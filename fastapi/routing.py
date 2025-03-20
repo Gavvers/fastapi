@@ -342,7 +342,7 @@ def get_request_handler(
                         if not is_body_allowed_for_status_code(response.status_code):
                             response.body = b""
                         response.headers.raw.extend(solved_result.response.headers.raw)
-            if errors:
+            if errors and raise_from_deps:
                 validation_error = RequestValidationError(
                     _normalize_errors(errors), body=body
                 )
