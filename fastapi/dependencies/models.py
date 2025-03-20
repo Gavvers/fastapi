@@ -32,6 +32,7 @@ class Dependant:
     use_cache: bool = True
     path: Optional[str] = None
     cache_key: Tuple[Optional[Callable[..., Any]], Tuple[str, ...]] = field(init=False)
+    request_errors_param_name:Optional[str] = None
 
     def __post_init__(self) -> None:
         self.cache_key = (self.call, tuple(sorted(set(self.security_scopes or []))))
