@@ -1709,10 +1709,10 @@ class APIRouter(routing.Router):
                 """
                 Switch between dependency exception handling flows.
 
-                If `True`, current behavior - exceptions raised from dependencies
+                When `True`, the current behavior, exceptions raised from dependencies
                 short-circuit the request and returns an immediate response.
 
-                If `False`, exceptions raised from dependencies do not interrupt
+                When `False`, exceptions raised from dependencies do not interrupt
                 the request handling and the path operation function is still called.
                 """
             ),
@@ -2095,6 +2095,20 @@ class APIRouter(routing.Router):
                 """
             ),
         ] = Default(generate_unique_id),
+        raise_from_deps: Annotated[
+            bool,
+            Doc(
+                """
+                Switch between dependency exception handling flows.
+
+                When `True`, the current behavior, exceptions raised from dependencies
+                short-circuit the request and returns an immediate response.
+
+                When `False`, exceptions raised from dependencies do not interrupt
+                the request handling and the path operation function is still called.
+                """
+            ),
+        ] = True,
     ) -> Callable[[DecoratedCallable], DecoratedCallable]:
         """
         Add a *path operation* using an HTTP PUT operation.
@@ -2144,6 +2158,7 @@ class APIRouter(routing.Router):
             callbacks=callbacks,
             openapi_extra=openapi_extra,
             generate_unique_id_function=generate_unique_id_function,
+            raise_from_deps=raise_from_deps,
         )
 
     def post(
@@ -2477,6 +2492,20 @@ class APIRouter(routing.Router):
                 """
             ),
         ] = Default(generate_unique_id),
+        raise_from_deps: Annotated[
+            bool,
+            Doc(
+                """
+                Switch between dependency exception handling flows.
+
+                When `True`, the current behavior, exceptions raised from dependencies
+                short-circuit the request and returns an immediate response.
+
+                When `False`, exceptions raised from dependencies do not interrupt
+                the request handling and the path operation function is still called.
+                """
+            ),
+        ] = True,
     ) -> Callable[[DecoratedCallable], DecoratedCallable]:
         """
         Add a *path operation* using an HTTP POST operation.
@@ -2526,6 +2555,7 @@ class APIRouter(routing.Router):
             callbacks=callbacks,
             openapi_extra=openapi_extra,
             generate_unique_id_function=generate_unique_id_function,
+            raise_from_deps=raise_from_deps,
         )
 
     def delete(
@@ -2859,6 +2889,20 @@ class APIRouter(routing.Router):
                 """
             ),
         ] = Default(generate_unique_id),
+        raise_from_deps: Annotated[
+            bool,
+            Doc(
+                """
+                Switch between dependency exception handling flows.
+
+                When `True`, the current behavior, exceptions raised from dependencies
+                short-circuit the request and returns an immediate response.
+
+                When `False`, exceptions raised from dependencies do not interrupt
+                the request handling and the path operation function is still called.
+                """
+            ),
+        ] = True,
     ) -> Callable[[DecoratedCallable], DecoratedCallable]:
         """
         Add a *path operation* using an HTTP DELETE operation.
@@ -2903,6 +2947,7 @@ class APIRouter(routing.Router):
             callbacks=callbacks,
             openapi_extra=openapi_extra,
             generate_unique_id_function=generate_unique_id_function,
+            raise_from_deps=raise_from_deps,
         )
 
     def options(
@@ -3236,6 +3281,20 @@ class APIRouter(routing.Router):
                 """
             ),
         ] = Default(generate_unique_id),
+        raise_from_deps: Annotated[
+            bool,
+            Doc(
+                """
+                Switch between dependency exception handling flows.
+
+                When `True`, the current behavior, exceptions raised from dependencies
+                short-circuit the request and returns an immediate response.
+
+                When `False`, exceptions raised from dependencies do not interrupt
+                the request handling and the path operation function is still called.
+                """
+            ),
+        ] = True,
     ) -> Callable[[DecoratedCallable], DecoratedCallable]:
         """
         Add a *path operation* using an HTTP OPTIONS operation.
@@ -3280,6 +3339,7 @@ class APIRouter(routing.Router):
             callbacks=callbacks,
             openapi_extra=openapi_extra,
             generate_unique_id_function=generate_unique_id_function,
+            raise_from_deps=raise_from_deps,
         )
 
     def head(
@@ -3613,6 +3673,20 @@ class APIRouter(routing.Router):
                 """
             ),
         ] = Default(generate_unique_id),
+        raise_from_deps: Annotated[
+            bool,
+            Doc(
+                """
+                Switch between dependency exception handling flows.
+
+                When `True`, the current behavior, exceptions raised from dependencies
+                short-circuit the request and returns an immediate response.
+
+                When `False`, exceptions raised from dependencies do not interrupt
+                the request handling and the path operation function is still called.
+                """
+            ),
+        ] = True,
     ) -> Callable[[DecoratedCallable], DecoratedCallable]:
         """
         Add a *path operation* using an HTTP HEAD operation.
@@ -3662,6 +3736,7 @@ class APIRouter(routing.Router):
             callbacks=callbacks,
             openapi_extra=openapi_extra,
             generate_unique_id_function=generate_unique_id_function,
+            raise_from_deps=raise_from_deps,
         )
 
     def patch(
@@ -3995,6 +4070,20 @@ class APIRouter(routing.Router):
                 """
             ),
         ] = Default(generate_unique_id),
+        raise_from_deps: Annotated[
+            bool,
+            Doc(
+                """
+                Switch between dependency exception handling flows.
+
+                When `True`, the current behavior, exceptions raised from dependencies
+                short-circuit the request and returns an immediate response.
+
+                When `False`, exceptions raised from dependencies do not interrupt
+                the request handling and the path operation function is still called.
+                """
+            ),
+        ] = True,
     ) -> Callable[[DecoratedCallable], DecoratedCallable]:
         """
         Add a *path operation* using an HTTP PATCH operation.
@@ -4044,6 +4133,7 @@ class APIRouter(routing.Router):
             callbacks=callbacks,
             openapi_extra=openapi_extra,
             generate_unique_id_function=generate_unique_id_function,
+            raise_from_deps=raise_from_deps,
         )
 
     def trace(
@@ -4377,6 +4467,20 @@ class APIRouter(routing.Router):
                 """
             ),
         ] = Default(generate_unique_id),
+        raise_from_deps: Annotated[
+            bool,
+            Doc(
+                """
+                Switch between dependency exception handling flows.
+
+                When `True`, the current behavior, exceptions raised from dependencies
+                short-circuit the request and returns an immediate response.
+
+                When `False`, exceptions raised from dependencies do not interrupt
+                the request handling and the path operation function is still called.
+                """
+            ),
+        ] = True,
     ) -> Callable[[DecoratedCallable], DecoratedCallable]:
         """
         Add a *path operation* using an HTTP TRACE operation.
@@ -4426,6 +4530,7 @@ class APIRouter(routing.Router):
             callbacks=callbacks,
             openapi_extra=openapi_extra,
             generate_unique_id_function=generate_unique_id_function,
+            raise_from_deps=raise_from_deps,
         )
 
     @deprecated(
