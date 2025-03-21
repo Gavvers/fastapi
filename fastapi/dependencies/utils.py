@@ -52,6 +52,7 @@ from fastapi.concurrency import (
     contextmanager_in_threadpool,
 )
 from fastapi.dependencies.models import Dependant, SecurityRequirement
+from fastapi.dependencies.requesterrors import RequestErrors
 from fastapi.logger import logger
 from fastapi.security.base import SecurityBase
 from fastapi.security.oauth2 import OAuth2, SecurityScopes
@@ -335,6 +336,9 @@ def add_non_field_param_to_dependency(
     elif lenient_issubclass(type_annotation, SecurityScopes):
         dependant.security_scopes_param_name = param_name
         return True
+    elif lenient_issubclass(type_annotation, RequestErrors):
+        dependant.request_errors_param_name = param_name
+        return True
     return None
 
 
@@ -436,6 +440,7 @@ def analyze_param(
             Response,
             StarletteBackgroundTasks,
             SecurityScopes,
+            RequestErrors,
         ),
     ):
         assert depends is None, f"Cannot specify `Depends` for type {type_annotation!r}"
