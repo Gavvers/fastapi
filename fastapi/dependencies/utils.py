@@ -644,18 +644,20 @@ async def solve_dependencies(
         elif is_coroutine_callable(call):
             try:
                 solved = await call(**solved_result.values)
-            except Exception:
+            except Exception as e:
                 if raise_from_deps:
                     raise
                 else:
+                    errors.append(e)
                     solved = None
         else:
             try:
                 solved = await run_in_threadpool(call, **solved_result.values)
-            except Exception:
+            except Exception as e:
                 if raise_from_deps:
                     raise
                 else:
+                    errors.append(e)
                     solved = None
         if sub_dependant.name is not None:
             values[sub_dependant.name] = solved
