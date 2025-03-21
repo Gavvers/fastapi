@@ -26,6 +26,7 @@ from fastapi._compat import (
     ModelField,
     RequiredParam,
     Undefined,
+    _normalize_errors,
     _regenerate_error_with_loc,
     copy_field_info,
     create_body_model,
@@ -706,6 +707,10 @@ async def solve_dependencies(
     if dependant.security_scopes_param_name:
         values[dependant.security_scopes_param_name] = SecurityScopes(
             scopes=dependant.security_scopes
+        )
+    if dependant.request_errors_param_name:
+        values[dependant.request_errors_param_name] = RequestErrors(
+            errors=_normalize_errors(errors)
         )
     return SolvedDependency(
         values=values,
