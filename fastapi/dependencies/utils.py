@@ -58,7 +58,7 @@ from fastapi.security.base import SecurityBase
 from fastapi.security.oauth2 import OAuth2, SecurityScopes
 from fastapi.security.open_id_connect_url import OpenIdConnect
 from fastapi.utils import create_model_field, get_path_param_names
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 from pydantic.fields import FieldInfo
 from starlette.background import BackgroundTasks as StarletteBackgroundTasks
 from starlette.concurrency import run_in_threadpool
@@ -644,21 +644,16 @@ async def solve_dependencies(
         elif is_coroutine_callable(call):
             try:
                 solved = await call(**solved_result.values)
-            except Exception as e:
-                if raise_from_deps:
-                    raise
-                else:
-                    errors.append(e)
-                    solved = None
+            except Exception:
+                raise
         else:
             try:
                 solved = await run_in_threadpool(call, **solved_result.values)
-            except Exception as e:
-                if raise_from_deps:
-                    raise
-                else:
-                    errors.append(e)
-                    solved = None
+            except ValidationError as e:
+                errors.append(e)
+                solved = None
+            except Exception:
+                raise
         if sub_dependant.name is not None:
             values[sub_dependant.name] = solved
         if sub_dependant.cache_key not in dependency_cache:
