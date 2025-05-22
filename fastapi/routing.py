@@ -345,6 +345,7 @@ def get_request_handler(
                     _normalize_errors(errors), body=body
                 )
                 raise validation_error
+            pass
         if response is None:
             raise FastAPIError(
                 "No response object was returned. There's a high chance that the "
