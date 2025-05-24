@@ -52,12 +52,13 @@ from fastapi.concurrency import (
     contextmanager_in_threadpool,
 )
 from fastapi.dependencies.models import Dependant, SecurityRequirement
+from fastapi.dependencies.requesterrors import RequestErrors
 from fastapi.logger import logger
 from fastapi.security.base import SecurityBase
 from fastapi.security.oauth2 import OAuth2, SecurityScopes
 from fastapi.security.open_id_connect_url import OpenIdConnect
 from fastapi.utils import create_model_field, get_path_param_names
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 from pydantic.fields import FieldInfo
 from starlette.background import BackgroundTasks as StarletteBackgroundTasks
 from starlette.concurrency import run_in_threadpool
@@ -335,6 +336,9 @@ def add_non_field_param_to_dependency(
     elif lenient_issubclass(type_annotation, SecurityScopes):
         dependant.security_scopes_param_name = param_name
         return True
+    elif lenient_issubclass(type_annotation, RequestErrors):
+        dependant.request_errors_param_name = param_name
+        return True
     return None
 
 
@@ -436,6 +440,7 @@ def analyze_param(
             Response,
             StarletteBackgroundTasks,
             SecurityScopes,
+            RequestErrors,
         ),
     ):
         assert depends is None, f"Cannot specify `Depends` for type {type_annotation!r}"
@@ -635,9 +640,18 @@ async def solve_dependencies(
                 call=call, stack=async_exit_stack, sub_values=solved_result.values
             )
         elif is_coroutine_callable(call):
-            solved = await call(**solved_result.values)
+            try:
+                solved = await call(**solved_result.values)
+            except Exception:
+                raise
         else:
-            solved = await run_in_threadpool(call, **solved_result.values)
+            try:
+                solved = await run_in_threadpool(call, **solved_result.values)
+            except ValidationError as e:
+                errors.append(e)
+                solved = None
+            except Exception:
+                raise
         if sub_dependant.name is not None:
             values[sub_dependant.name] = solved
         if sub_dependant.cache_key not in dependency_cache:
@@ -686,6 +700,8 @@ async def solve_dependencies(
         values[dependant.security_scopes_param_name] = SecurityScopes(
             scopes=dependant.security_scopes
         )
+    if dependant.request_errors_param_name:
+        values[dependant.request_errors_param_name] = RequestErrors(errors=errors)
     return SolvedDependency(
         values=values,
         errors=errors,
